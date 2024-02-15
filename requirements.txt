@@ -28,8 +28,8 @@ passlib==1.7.4
 psycopg2==2.9.9
 pyasn1==0.5.1
 pycparser==2.21
-pydantic==2.5.3
-pydantic-core==2.14.6
+pydantic==2.6.1
+pydantic-core==2.16.2
 pydantic-extra-types==2.4.1
 pydantic-settings==2.1.0
 python-dotenv==1.0.0

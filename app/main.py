@@ -35,13 +35,14 @@ app.include_router(vote.router)
 
 
 # check health status
-@app.get("/")
+@app.get("/", status_code=status.HTTP_200_OK)
 def root():
-    return HTTPException(status_code=status.HTTP_200_OK, detail= {"status":"up"})
+    return {"status":"up"}
 
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    # uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 
