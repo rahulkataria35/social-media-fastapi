@@ -13,10 +13,10 @@ def login(user_cred: OAuth2PasswordRequestForm=Depends(), db: Session=Depends(ge
     user = db.query(models.User).filter(models.User.email == user_cred.username).first()
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invali Credentials")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Credentials")
     
     if not utils.verify(user_cred.password, user.password):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invali Credentials")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Credentials")
     
     # create token
 

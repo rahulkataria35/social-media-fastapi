@@ -1,13 +1,28 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from pydantic.types import conint
-
 
 class User(BaseModel):
     email: EmailStr
     password: str
+    phone_number: Optional[Union[str, None]] = None  # Allow both string and None
 
+    @validator("phone_number")
+    def validate_phone_number(cls, v: Optional[Union[str, None]]):
+        if v is not None:
+            # Ensure it's a string
+            if not isinstance(v, str):
+                raise ValueError("phone_number must be a string")
+
+            # Check length and format
+            if not (10 <= len(v) <= 12):
+                raise ValueError("phone_number must be between 10 and 12 characters")
+
+            # Only perform numerical checks if it's actually numerical
+            if v.isdigit():
+                return v
+                
 
 class UserOut(BaseModel):
     email: str
