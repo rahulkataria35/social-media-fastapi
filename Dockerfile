@@ -14,8 +14,6 @@ COPY . .
 WORKDIR /app/app
 
 # Expose the port for FastAPI application (adjust as needed)
-EXPOSE 8000
-EXPOSE 9092
-
+EXPOSE 5432
 # Run the command to start your application
 CMD [ "python3", "main.py"]

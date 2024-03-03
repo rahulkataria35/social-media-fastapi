@@ -1,11 +1,12 @@
-version: '3'
+---
+version: '3.3'
 services:
   fast-api:
     build: .
     depends_on:
       - postgres
     ports:
-      - 9092:8000   #<port on localhost>:<port on container>
+      - 8000:8000   #<port on localhost>:<port on container>
     volumes:
       - .:/app:ro    #use to sync the current project 
     # command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload   #to auto reload/restart our application
@@ -13,9 +14,12 @@ services:
       - ./.env
   postgres:
     image: postgres
+    restart: always
     environment:
       - POSTGRES_PASSWORD=rahul
       - POSTGRES_DB=fastapi
+      - POSTGRES_USER=rahul_kataria
+    
     volumes:
       - postgres-db:/var/lib/postgresql/data
 volumes:
