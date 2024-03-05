@@ -6,6 +6,10 @@ WORKDIR /app
 COPY ./requirements.txt ./requirements.txt
 RUN pip install --upgrade pip
 RUN pip3 install -r ./requirements.txt
+COPY ./alembic ./alembic
+COPY ./alembic.ini ./alembic.ini
+RUN alembic upgrade head
+
 
 # Copy the entire project directory
 COPY . .
@@ -13,7 +17,5 @@ COPY . .
 # Set working directory within the container to the app directory
 WORKDIR /app/app
 
-# Expose the port for FastAPI application (adjust as needed)
-EXPOSE 5432
 # Run the command to start your application
 CMD [ "python3", "main.py"]

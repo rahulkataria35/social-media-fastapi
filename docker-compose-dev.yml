@@ -13,12 +13,12 @@ services:
     env_file:    #we can use both method,(env_file or enviormnent)
       - ./.env
   postgres:
-    image: postgres
-    restart: always
+    image: postgres:16.2
+    ports:
+      - "5433:5432"
     environment:
       - POSTGRES_PASSWORD=rahul
-      - POSTGRES_DB=fastapi
-      - POSTGRES_USER=rahul_kataria
+      - POSTGRES_DB=postgres
     
     volumes:
       - postgres-db:/var/lib/postgresql/data
