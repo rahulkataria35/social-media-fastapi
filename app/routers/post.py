@@ -8,36 +8,47 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/posts", tags=['Posts'])
 
 
-# get all the data from posts table
 # @router.get("/", response_model=List[schemas.Post])
-@router.get("/")   #response_model=List[schemas.PostOut]  ye wala kaam rh rha h abhi
-def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),
-                  limit: int = 10, skip: int = 0, search: Optional[str] = ""):
-   
-    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-
-    response = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote,
-                                                                                          models.Vote.post_id == models.Post.id,
-                                                                                          isouter=True).group_by(
-        models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return response
-
+@router.get("/")
+def get_all_posts(
+    db: Session = Depends(get_db),
+    current_user: int = Depends(oauth2.get_current_user),
+    limit: int = 10,
+    skip: int = 0,
+    search: Optional[str] = "",):
+    """
+    Get all posts with optional search query and pagination.
+    """
+    query = db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+    query = query.join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+    query = query.group_by(models.Post.id)
+    query = query.filter(models.Post.title.contains(search))
+    query = query.limit(limit)
+    query = query.offset(skip)
+    posts = query.all()
+    # Convert the list of tuples into a list of dictionaries
+    posts_dicts = [
+        {
+            "post": post.__dict__,
+            "votes": votes,
+        }
+        for post, votes in posts
+    ]
+    return posts_dicts
 
 # get a single post from posts table using id column (PK)
 @router.get("/{id}") #response_model=List[schemas.PostOut]  ye wala kaam rh rha h abhi user ka relationship nhi banpaa rha hai modles me to email wala column nhi aa rha h abhi
 def get_one_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    # using sqlalchemy
-    # post = db.query(models.Post).filter(models.Post.id == id).first()
-
-    # write query to get votes also
     post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).outerjoin(
-                                                            models.Vote, models.Vote.post_id == models.Post.id).group_by(
-                                                            models.Post.id).filter(models.Post.id == id).first()
+        models.Vote, models.Vote.post_id == models.Post.id).group_by(
+        models.Post.id).filter(models.Post.id == id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail={"status": "Failure", "message": "id not found"})
-    return post
+    return {"post": post[0].__dict__, "votes": post[1]}
+
+
 
 
 # create a new post in the posts table in database
@@ -72,19 +83,19 @@ def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends
     return post_query.first()
 
 
+
 # delete a post from database using id
 @router.delete("/{id}")
 def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    post_query = db.query(models.Post).filter(models.Post.id == id)
-    post = post_query.first()
+    post = db.query(models.Post).filter(models.Post.id == id).first()
 
-    if post_query.first() == None:
+    if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="id not found")
 
-    if post.owner_id != current_user.id:
+    if post.owner_id!= current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not Authorized to perform this action")
 
-    current_user.delete(synchronize_session=False)
+    db.delete(post)
     db.commit()
-    # write logic
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
