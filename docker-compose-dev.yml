@@ -11,7 +11,7 @@ services:
       - 8000:8000 
     volumes:
       - .:/app:ro 
-    # env_file:    
+    # env_file:    #we can use both method,(env_file or enviormnent)
     #   - ./.env
     environment:
       - DATABASE_HOSTNAME=postgres
@@ -31,6 +31,7 @@ services:
     ports:
       - "5432:5432"
     environment:
+      - POSTGRES_USER=rahul
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
     healthcheck:
