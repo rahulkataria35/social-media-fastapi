@@ -6,8 +6,8 @@ from sqlalchemy import pool
 from alembic import context
 
 # from app.database import Base
-from app.models import Base
-from app.config import settings
+from models import Base
+from config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -34,7 +34,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 
-def run_migrations_offline() -> None:
+def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -58,7 +58,7 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
+def run_migrations_online():
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
