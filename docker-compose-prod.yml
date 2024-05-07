@@ -1,0 +1,66 @@
+version: '3'
+services:
+  fast-api:
+    image: <our latest image that we push on docker-hub>
+    depends_on:
+      - postgres
+    ports:
+      - 80:8000   #<port on localhost>:<port on container>
+    environment:
+      - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+
+    networks:
+      - app-network 
+
+    secrets:
+      - DATABASE_PASSWORD
+      - SECRET_KEY
+      - ALGORITHM
+      - ACCESS_TOKEN_EXPIRE_MINUTES
+
+  postgres:
+    image: postgres:14.0
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/DATABASE_PASSWORD
+      - POSTGRES_DB=${DATABASE_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network 
+
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    secrets:
+      - DATABASE_PASSWORD
+
+volumes:
+  postgres-db:
+
+networks:
+  app-network:
+    driver: bridge
+
+secrets:
+  DATABASE_PASSWORD:
+    file:./.env
+  SECRET_KEY:
+    file:./.env
+  ALGORITHM:
+    file:./.env
+  ACCESS_TOKEN_EXPIRE_MINUTES:
+    file:./.env
+
+   
+
+
+    
