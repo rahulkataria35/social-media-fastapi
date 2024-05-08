@@ -11,5 +11,6 @@ RUN pip install --no-cache-dir psycopg2-binary sqlalchemy alembic
 COPY . .
 
 COPY ./entrypoint.sh .
+EXPOSE 8080
 
 CMD ["./entrypoint.sh"]
