@@ -11,18 +11,20 @@ router = APIRouter(prefix="/users", tags=['Users'])
 
 # create user
 
-@router.post("/create", status_code=status.HTTP_201_CREATED,response_model=schemas.UserOut)
-def user(user:schemas.User, db: Session=Depends(get_db)): 
-    # hash the password
-    hashed_pswd =utils.hash(user.password)
-    user.password = hashed_pswd
+@router.post("/create", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
+def create_user(user: schemas.User, db: Session = Depends(get_db)):
+    # Hash the password
+    hashed_password = utils.hash(user.password)
+    user.password = hashed_password
 
-    user_name = db.query(models.User).filter(models.User.email == user.email).first()
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
 
-    if user_name:
-        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Already Exists")
+    if existing_user:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="User already exists")
     
-    new_user = models.User(**user.model_dump())
+    # new_user = models.User(**user.model_dump())
+
+    new_user = models.User(**user.dict())
 
     db.add(new_user)
     db.commit()
@@ -31,12 +33,21 @@ def user(user:schemas.User, db: Session=Depends(get_db)):
     return new_user
 
 
-@router.get("/{id}", response_model= schemas.UserOut)
-def get_user(id: int, db: Session= Depends(get_db)):
-    # fetch user detail
-    user_data = db.query(models.User).filter(models.User.id==id).first()
+@router.get("/{id}", response_model=schemas.UserOut)
+def get_user(id: int, db: Session = Depends(get_db)) -> schemas.UserOut:
+    """
+    Get a user by ID.
 
-    if not user_data:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= f"user with id: {id} does not exist")
+    Args:
+        id (int): The ID of the user to retrieve.
+        db (Session): The database session.
+
+    Raises:
+        HTTPException: 404 if the user does not exist.
+
+    Returns:
+        schemas.UserOut: The retrieved user data.
+    """
+    user_data = db.query(models.User).filter(models.User.id == id).first_or_404()
 
     return user_data

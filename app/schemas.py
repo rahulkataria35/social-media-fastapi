@@ -29,7 +29,7 @@ class UserOut(BaseModel):
     id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True  # replace from_attributes with orm_mode
 
 
 class UserLogin(BaseModel):
