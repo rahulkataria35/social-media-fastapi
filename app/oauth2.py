@@ -12,38 +12,60 @@ SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
-def create_access_token(data: dict):
+def create_access_token(data: dict) -> str:
+    """
+    Create an access token with the provided data
+    """
     to_encode = data.copy()
-
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
     to_encode.update({"exp": expire})
-
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def verify_access_token(token: str, credential_exception):
+    """
+    Verify an access token and return the corresponding token data.
+
+    Args:
+        token (str): The access token to verify.
+        credential_exception: The exception to raise if the token is invalid.
+
+    Returns:
+        Optional[schemas.TokenData]: The token data if the token is valid, None otherwise.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        id = str(payload.get("user_id"))
-
-        if id is None:
+        user_id = payload.get("user_id")
+        if user_id is None:
             raise credential_exception
-        
-        token_data = schemas.TokenData(id=id)
-        
+        return schemas.TokenData(id=str(user_id))
+    
     except JWTError:
         raise credential_exception
-    return token_data
     
 
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
-    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail= "could not validate credentials",
-                                         headers={"WWW-Authenticate": "Bearer"})
-    
-    token = verify_access_token(token, credential_exception)
-    user =  db.query(models.User).filter(models.User.id == token.id).first()
-    return user
+    """
+    Retrieve the current user based on the provided token.
+
+    Args:
+        token (str): The access token provided by the client.
+        db (Session): The database session.
+
+    Returns:
+        models.User: The current user.
+
+    Raises:
+        HTTPException: If the token is invalid or cannot be verified.
+    """
+    try:
+        token_data = verify_access_token(token)
+        user = db.query(models.User).filter(models.User.id == token_data.id).first()
+        return user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
