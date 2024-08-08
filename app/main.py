@@ -1,4 +1,4 @@
-from fastapi import FastAPI,status, HTTPException
+from fastapi import FastAPI, status, HTTPException
 import uvicorn
 import models
 from database import engine
